@@ -8,6 +8,7 @@ import { useAnalysis } from './hooks/useAnalysis'
 import { Header } from './components/Header'
 import { LeftPanel } from './components/LeftPanel'
 import { RightPanel } from './components/RightPanel'
+import { StatusBar } from './components/StatusBar'
 import type { CSVData, Panel } from './lib/types'
 
 export default function DataLab() {
@@ -77,31 +78,7 @@ export default function DataLab() {
           />
         </div>
 
-        {/* Footer / status bar */}
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          padding: '0 16px', height: 26,
-          borderTop: '1px solid rgba(55,53,47,0.09)',
-          background: '#FAFAF8',
-          flexShrink: 0,
-        }}>
-          <span style={{
-            fontSize: 10,
-            color: '#AEAAA2',
-            fontFamily: "'IBM Plex Mono', monospace",
-          }}>
-            {csv
-              ? `${csv.filename}  ·  ${csv.rowCount.toLocaleString()} rows  ·  ${csv.headers.length} cols`
-              : 'No file loaded'}
-          </span>
-          <span style={{
-            fontSize: 10,
-            color: '#AEAAA2',
-            fontFamily: "'IBM Plex Mono', monospace",
-          }}>
-            claude-opus-4-6  ·  senior-data-scientist
-          </span>
-        </div>
+        <StatusBar csv={csv} />
       </div>
     </>
   )
