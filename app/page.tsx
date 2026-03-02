@@ -21,8 +21,8 @@ export default function DataLab() {
     if (saved) setApiKey(saved)
   }, [])
 
-  const chat     = useChat(csv, apiKey)
   const analysis = useAnalysis(csv, setPanel, apiKey)
+  const chat     = useChat(csv, apiKey, analysis.report)
 
   const handleClearAll = useCallback(() => {
     setCsv(null)

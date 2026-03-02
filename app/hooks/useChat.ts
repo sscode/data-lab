@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import type { CSVData, Message } from '../lib/types'
 
-export function useChat(csv: CSVData | null, apiKey: string) {
+export function useChat(csv: CSVData | null, apiKey: string, report: string | null = null) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isChatBusy, setChatBusy] = useState(false)
@@ -35,6 +35,7 @@ export function useChat(csv: CSVData | null, apiKey: string) {
         body:    JSON.stringify({
           messages: allMsgs.map((m) => ({ role: m.role, content: m.content })),
           csvContext: { headers: csv.headers, preview: csv.rows, allRows: csv.allRows, rowCount: csv.rowCount, filename: csv.filename },
+          report,
         }),
       })
 
@@ -63,7 +64,7 @@ export function useChat(csv: CSVData | null, apiKey: string) {
       setChatBusy(false)
       inputRef.current?.focus()
     }
-  }, [input, csv, isChatBusy, messages])
+  }, [input, csv, isChatBusy, messages, report])
 
   const reset = useCallback(() => {
     setMessages([])

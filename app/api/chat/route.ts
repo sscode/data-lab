@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'API key required' }, { status: 401 })
   }
 
-  const { messages, csvContext }: { messages: Message[]; csvContext: CSVContext } =
+  const { messages, csvContext, report }: { messages: Message[]; csvContext: CSVContext; report?: string | null } =
     await req.json()
 
   const rowsToShow = csvContext.allRows.slice(0, 200)
@@ -58,9 +58,13 @@ ${formattedRows}
 
   const provider = createAnthropic({ apiKey })
 
+  const reportContext = report
+    ? `\n\n---\nA pre-generated analysis report is available for reference:\n<report>\n${report}\n</report>`
+    : ''
+
   const result = streamText({
     model: provider('claude-opus-4-6'),
-    system: `${SENIOR_DS_SYSTEM_PROMPT}\n\n${datasetContext}`,
+    system: `${SENIOR_DS_SYSTEM_PROMPT}\n\n${datasetContext}${reportContext}`,
     messages,
     maxOutputTokens: 1024,
   })
