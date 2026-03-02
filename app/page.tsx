@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { CSS } from './styles/global-classes'
 import { useCSV } from './hooks/useCSV'
 import { useChat } from './hooks/useChat'
@@ -13,9 +13,15 @@ import type { CSVData, Panel } from './lib/types'
 export default function DataLab() {
   const [csv, setCsv]     = useState<CSVData | null>(null)
   const [panel, setPanel] = useState<Panel>('chat')
+  const [apiKey, setApiKey] = useState('')
 
-  const chat     = useChat(csv)
-  const analysis = useAnalysis(csv, setPanel)
+  useEffect(() => {
+    const saved = localStorage.getItem('anthropic-api-key')
+    if (saved) setApiKey(saved)
+  }, [])
+
+  const chat     = useChat(csv, apiKey)
+  const analysis = useAnalysis(csv, setPanel, apiKey)
 
   const { isDragging, fileRef, handleFile, onDragOver, onDragLeave, onDrop } = useCSV({
     onFileLoaded: useCallback((data: CSVData) => {
@@ -41,6 +47,8 @@ export default function DataLab() {
           csv={csv}
           isAnalyzing={analysis.isAnalyzing}
           onRunAnalysis={analysis.runAnalysis}
+          apiKey={apiKey}
+          onApiKeyChange={(key) => { setApiKey(key); localStorage.setItem('anthropic-api-key', key) }}
         />
 
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>

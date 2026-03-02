@@ -6,7 +6,7 @@
  * with the CSV dataset context appended per-request.
  */
 import { streamText } from 'ai'
-import { anthropic } from '@ai-sdk/anthropic'
+import { createAnthropic } from '@ai-sdk/anthropic'
 import { SENIOR_DS_SYSTEM_PROMPT } from '@/lib/skill-prompt'
 
 export const maxDuration = 60
@@ -24,6 +24,11 @@ interface Message {
 }
 
 export async function POST(req: Request) {
+  const apiKey = req.headers.get('x-api-key')
+  if (!apiKey) {
+    return Response.json({ error: 'API key required' }, { status: 401 })
+  }
+
   const { messages, csvContext }: { messages: Message[]; csvContext: CSVContext } =
     await req.json()
 
@@ -46,8 +51,10 @@ ${previewRows}
 \`\`\`
 `
 
+  const provider = createAnthropic({ apiKey })
+
   const result = streamText({
-    model: anthropic('claude-opus-4-6'),
+    model: provider('claude-opus-4-6'),
     system: `${SENIOR_DS_SYSTEM_PROMPT}\n\n${datasetContext}`,
     messages,
     maxOutputTokens: 1024,

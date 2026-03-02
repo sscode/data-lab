@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import type { CSVData, Message } from '../lib/types'
 
-export function useChat(csv: CSVData | null) {
+export function useChat(csv: CSVData | null, apiKey: string) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isChatBusy, setChatBusy] = useState(false)
@@ -31,7 +31,7 @@ export function useChat(csv: CSVData | null) {
     try {
       const res = await fetch('/api/chat', {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
         body:    JSON.stringify({
           messages: allMsgs.map((m) => ({ role: m.role, content: m.content })),
           csvContext: { headers: csv.headers, preview: csv.rows, rowCount: csv.rowCount, filename: csv.filename },

@@ -28,7 +28,7 @@ interface AnalyzeRequest {
  * Agent SDK analysis — runs Claude Code with the senior-data-scientist skill.
  * Requires `claude` CLI installed: npm install -g @anthropic-ai/claude-code
  */
-async function runAgentAnalysis(data: AnalyzeRequest): Promise<string> {
+async function runAgentAnalysis(data: AnalyzeRequest, apiKey: string): Promise<string> {
   // Dynamic import so the app still boots without the CLI installed
   const { query } = await import('@anthropic-ai/claude-agent-sdk')
 
@@ -76,8 +76,8 @@ Generate the full EDA report now. Be thorough, specific, and actionable.`
  * Direct Anthropic API fallback — no CLI required.
  * Used when USE_AGENT_SDK is not set or Agent SDK is unavailable.
  */
-async function runDirectAnalysis(data: AnalyzeRequest): Promise<string> {
-  const client = new Anthropic()
+async function runDirectAnalysis(data: AnalyzeRequest, apiKey: string): Promise<string> {
+  const client = new Anthropic({ apiKey })
 
   const previewTable = [
     data.headers.join(' | '),
@@ -112,14 +112,19 @@ Generate the full EDA report now.`,
 }
 
 export async function POST(req: Request) {
+  const apiKey = req.headers.get('x-api-key')
+  if (!apiKey) {
+    return Response.json({ error: 'API key required' }, { status: 401 })
+  }
+
   const data: AnalyzeRequest = await req.json()
 
   const useAgentSdk = process.env.USE_AGENT_SDK === 'true'
 
   try {
     const report = useAgentSdk
-      ? await runAgentAnalysis(data)
-      : await runDirectAnalysis(data)
+      ? await runAgentAnalysis(data, apiKey)
+      : await runDirectAnalysis(data, apiKey)
 
     return Response.json({ report })
   } catch (err) {
@@ -129,7 +134,7 @@ export async function POST(req: Request) {
     if (useAgentSdk) {
       console.warn('[analyze] Agent SDK failed, falling back to direct API')
       try {
-        const report = await runDirectAnalysis(data)
+        const report = await runDirectAnalysis(data, apiKey)
         return Response.json({ report })
       } catch (fallbackErr) {
         console.error('[analyze] Fallback also failed', fallbackErr)
