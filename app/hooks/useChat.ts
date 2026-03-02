@@ -34,7 +34,7 @@ export function useChat(csv: CSVData | null, apiKey: string) {
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
         body:    JSON.stringify({
           messages: allMsgs.map((m) => ({ role: m.role, content: m.content })),
-          csvContext: { headers: csv.headers, preview: csv.rows, rowCount: csv.rowCount, filename: csv.filename },
+          csvContext: { headers: csv.headers, preview: csv.rows, allRows: csv.allRows, rowCount: csv.rowCount, filename: csv.filename },
         }),
       })
 

@@ -16,6 +16,7 @@ interface CSVContext {
   rowCount: number
   headers: string[]
   preview: string[][]
+  allRows: string[][]
 }
 
 interface Message {
@@ -32,23 +33,27 @@ export async function POST(req: Request) {
   const { messages, csvContext }: { messages: Message[]; csvContext: CSVContext } =
     await req.json()
 
-  const previewRows = csvContext.preview
+  const rowsToShow = csvContext.allRows.slice(0, 200)
+  const formattedRows = rowsToShow
     .map((row) =>
       csvContext.headers
         .map((h, i) => `${h}: ${row[i] ?? 'null'}`)
         .join(' | ')
     )
     .join('\n')
+  const truncationNote = csvContext.rowCount > 200
+    ? `\n(${csvContext.rowCount - 200} additional rows not shown)`
+    : ''
 
   const datasetContext = `
 ## Active Dataset: ${csvContext.filename}
 - **Rows**: ${csvContext.rowCount.toLocaleString()}
 - **Columns (${csvContext.headers.length})**: ${csvContext.headers.join(', ')}
 
-### Preview (first ${csvContext.preview.length} records):
+### Full dataset (up to 200 rows shown):
 \`\`\`
-${previewRows}
-\`\`\`
+${formattedRows}
+\`\`\`${truncationNote}
 `
 
   const provider = createAnthropic({ apiKey })

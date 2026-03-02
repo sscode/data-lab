@@ -22,7 +22,7 @@ export function useAnalysis(csv: CSVData | null, setPanel: Dispatch<SetStateActi
       const res  = await fetch('/api/analyze', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-        body:    JSON.stringify({ headers: csv.headers, preview: csv.rows, rowCount: csv.rowCount, filename: csv.filename }),
+        body:    JSON.stringify({ headers: csv.headers, preview: csv.rows, allRows: csv.allRows, rowCount: csv.rowCount, filename: csv.filename }),
       })
       const data = await res.json()
       if (data.error) setReport(`**ERROR**: ${data.error}`)

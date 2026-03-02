@@ -1,6 +1,7 @@
 export type CSVData = {
   headers: string[]
-  rows: string[][]
+  rows: string[][]      // first 5 rows (for DataPreview table)
+  allRows: string[][]   // ALL rows
   rowCount: number
   filename: string
   fileSize: string

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import type { CSVData, Message } from '../lib/types'
+import { renderMarkdown } from '../lib/renderMarkdown'
 
 interface ChatPanelProps {
   csv: CSVData | null
@@ -82,7 +83,7 @@ export function ChatPanel({
                 }}>
                   {msg.content}
                 </div>
-              ) : (
+              ) : msg.streaming ? (
                 <div style={{
                   maxWidth: '88%',
                   color: '#6F6E69',
@@ -93,18 +94,28 @@ export function ChatPanel({
                   wordBreak: 'break-word',
                 }}>
                   {msg.content}
-                  {msg.streaming && (
-                    <span style={{
-                      display: 'inline-block',
-                      width: 5, height: 13,
-                      background: '#1A1917',
-                      marginLeft: 2,
-                      verticalAlign: 'text-bottom',
-                      borderRadius: 1,
-                      opacity: 0.55,
-                    }} />
-                  )}
+                  <span style={{
+                    display: 'inline-block',
+                    width: 5, height: 13,
+                    background: '#1A1917',
+                    marginLeft: 2,
+                    verticalAlign: 'text-bottom',
+                    borderRadius: 1,
+                    opacity: 0.55,
+                  }} />
                 </div>
+              ) : (
+                <div
+                  className="prose chat-prose"
+                  style={{
+                    maxWidth: '88%',
+                    color: '#6F6E69',
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: 12,
+                    lineHeight: 1.95,
+                  }}
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }}
+                />
               )}
             </div>
           ))

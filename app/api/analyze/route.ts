@@ -22,6 +22,7 @@ interface AnalyzeRequest {
   rowCount: number
   headers: string[]
   preview: string[][]
+  allRows: string[][]
 }
 
 /**
@@ -32,10 +33,14 @@ async function runAgentAnalysis(data: AnalyzeRequest, apiKey: string): Promise<s
   // Dynamic import so the app still boots without the CLI installed
   const { query } = await import('@anthropic-ai/claude-agent-sdk')
 
+  const rowsToShow = data.allRows.slice(0, 200)
   const previewTable = [
     data.headers.join('\t'),
-    ...data.preview.map((row) => row.join('\t')),
+    ...rowsToShow.map((row) => row.join('\t')),
   ].join('\n')
+  const truncationNote = data.rowCount > 200
+    ? `\n(${data.rowCount - 200} additional rows not shown)`
+    : ''
 
   const prompt = `${DEEP_ANALYSIS_PROMPT}
 
@@ -45,10 +50,10 @@ async function runAgentAnalysis(data: AnalyzeRequest, apiKey: string): Promise<s
 **Total rows**: ${data.rowCount.toLocaleString()}
 **Columns**: ${data.headers.join(', ')}
 
-**Preview data (first ${data.preview.length} rows)**:
+**Full dataset (up to 200 rows shown)**:
 \`\`\`tsv
 ${previewTable}
-\`\`\`
+\`\`\`${truncationNote}
 
 Generate the full EDA report now. Be thorough, specific, and actionable.`
 
@@ -79,11 +84,15 @@ Generate the full EDA report now. Be thorough, specific, and actionable.`
 async function runDirectAnalysis(data: AnalyzeRequest, apiKey: string): Promise<string> {
   const client = new Anthropic({ apiKey })
 
-  const previewTable = [
+  const directRowsToShow = data.allRows.slice(0, 200)
+  const directTable = [
     data.headers.join(' | '),
     data.headers.map(() => '---').join(' | '),
-    ...data.preview.map((row) => row.join(' | ')),
+    ...directRowsToShow.map((row) => row.join(' | ')),
   ].join('\n')
+  const directTruncationNote = data.rowCount > 200
+    ? `\n(${data.rowCount - 200} additional rows not shown)`
+    : ''
 
   const message = await client.messages.create({
     model: 'claude-opus-4-6',
@@ -99,8 +108,8 @@ async function runDirectAnalysis(data: AnalyzeRequest, apiKey: string): Promise<
 **Total rows**: ${data.rowCount.toLocaleString()}
 **Columns**: ${data.headers.join(', ')}
 
-**Preview**:
-${previewTable}
+**Full dataset (up to 200 rows shown)**:
+${directTable}${directTruncationNote}
 
 Generate the full EDA report now.`,
       },

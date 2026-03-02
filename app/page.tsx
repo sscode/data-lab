@@ -46,8 +46,6 @@ export default function DataLab() {
       }}>
         <Header
           csv={csv}
-          isAnalyzing={analysis.isAnalyzing}
-          onRunAnalysis={analysis.runAnalysis}
           apiKey={apiKey}
           onApiKeyChange={(key) => { setApiKey(key); localStorage.setItem('anthropic-api-key', key) }}
         />
@@ -75,6 +73,7 @@ export default function DataLab() {
             bottomRef={chat.bottomRef}
             inputRef={chat.inputRef}
             handleSubmit={chat.handleSubmit}
+            onRunAnalysis={analysis.runAnalysis}
           />
         </div>
 

@@ -2,10 +2,13 @@
 
 import React, { useState, useEffect } from 'react'
 import { renderMarkdown } from '../lib/renderMarkdown'
+import type { CSVData } from '../lib/types'
 
 interface ReportPanelProps {
   isAnalyzing: boolean
   report: string | null
+  csv: CSVData | null
+  onRunAnalysis: () => void
 }
 
 function AnimatedEllipsis() {
@@ -18,7 +21,7 @@ function AnimatedEllipsis() {
   return <span style={{ letterSpacing: 2 }}>{dots}</span>
 }
 
-export function ReportPanel({ isAnalyzing, report }: ReportPanelProps) {
+export function ReportPanel({ isAnalyzing, report, csv, onRunAnalysis }: ReportPanelProps) {
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
       {isAnalyzing ? (
@@ -47,6 +50,7 @@ export function ReportPanel({ isAnalyzing, report }: ReportPanelProps) {
           fontFamily: "'Manrope', sans-serif",
           fontSize: 13,
           lineHeight: 2,
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
         }}>
           <div style={{ marginBottom: 16, opacity: 0.4 }}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ display: 'inline-block' }}>
@@ -55,7 +59,12 @@ export function ReportPanel({ isAnalyzing, report }: ReportPanelProps) {
             </svg>
           </div>
           <div style={{ fontWeight: 600, color: '#6F6E69', marginBottom: 6 }}>No report yet</div>
-          Click <strong style={{ color: '#1A1917' }}>Run Analysis</strong> above to generate a full EDA report. →
+          Run a deep analysis to generate a full EDA report for your dataset.
+          {csv && (
+            <button className="run-btn" onClick={onRunAnalysis} style={{ marginTop: 16, fontSize: 12 }}>
+              Run Analysis
+            </button>
+          )}
         </div>
       )}
     </div>

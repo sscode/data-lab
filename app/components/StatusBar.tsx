@@ -10,7 +10,7 @@ interface StatusBarProps {
 export function StatusBar({ csv }: StatusBarProps) {
   return (
     <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      display: 'flex', justifyContent: 'flex-start', alignItems: 'center',
       padding: '0 16px', height: 26,
       borderTop: '1px solid rgba(55,53,47,0.09)',
       background: '#FAFAF8',
@@ -32,13 +32,6 @@ export function StatusBar({ csv }: StatusBarProps) {
         {csv
           ? `${csv.filename}  ·  ${csv.rowCount.toLocaleString()} rows  ·  ${csv.headers.length} cols`
           : 'No file loaded'}
-      </span>
-      <span style={{
-        fontSize: 10,
-        color: '#AEAAA2',
-        fontFamily: "'IBM Plex Mono', monospace",
-      }}>
-        claude-opus-4-6  ·  senior-data-scientist
       </span>
     </div>
   )

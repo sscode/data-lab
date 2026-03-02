@@ -1,17 +1,29 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import type { CSVData } from '../lib/types'
 
 interface HeaderProps {
   csv: CSVData | null
-  isAnalyzing: boolean
-  onRunAnalysis: () => void
   apiKey: string
   onApiKeyChange: (key: string) => void
 }
 
-export function Header({ csv, isAnalyzing, onRunAnalysis, apiKey, onApiKeyChange }: HeaderProps) {
+export function Header({ csv, apiKey, onApiKeyChange }: HeaderProps) {
+  const [showPopover, setShowPopover] = useState(false)
+  const [showKey, setShowKey] = useState(false)
+  const keyContainerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (keyContainerRef.current && !keyContainerRef.current.contains(e.target as Node)) {
+        setShowPopover(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   return (
     <header style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -62,45 +74,161 @@ export function Header({ csv, isAnalyzing, onRunAnalysis, apiKey, onApiKeyChange
         )}
       </div>
 
-      {/* Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        {/* API Key input */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <svg width="11" height="13" viewBox="0 0 11 13" fill="none" style={{ flexShrink: 0 }}>
-            <rect x="1" y="5" width="9" height="7" rx="1.5" stroke="#AEAAA2" strokeWidth="1.2" fill="none"/>
-            <path d="M3 5V3.5a2.5 2.5 0 0 1 5 0V5" stroke="#AEAAA2" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
-            <circle cx="5.5" cy="8.5" r="1" fill="#AEAAA2"/>
+      {/* API Key */}
+      <div ref={keyContainerRef} style={{ position: 'relative' }}>
+        <button
+          onClick={() => setShowPopover(p => !p)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '5px 10px',
+            background: showPopover ? 'rgba(55,53,47,0.06)' : apiKey ? 'rgba(15,123,91,0.06)' : 'rgba(55,53,47,0.04)',
+            border: apiKey ? '1px solid rgba(15,123,91,0.22)' : '1px solid rgba(55,53,47,0.12)',
+            borderRadius: 6,
+            cursor: 'pointer',
+            transition: 'all 0.14s',
+          }}
+        >
+          {/* Key icon */}
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+            <circle cx="8" cy="15" r="5" stroke={apiKey ? '#0F7B5B' : '#AEAAA2'} strokeWidth="1.8"/>
+            <path d="M12.5 11.5L21 3M21 3h-3M21 3v3" stroke={apiKey ? '#0F7B5B' : '#AEAAA2'} strokeWidth="1.8" strokeLinecap="round"/>
           </svg>
-          <input
-            type="password"
-            value={apiKey}
-            onChange={(e) => onApiKeyChange(e.target.value)}
-            placeholder="Paste API key…"
-            style={{
-              width: 188,
-              height: 28,
-              padding: '0 8px',
-              fontSize: 11,
-              fontFamily: "'IBM Plex Mono', monospace",
-              color: '#1A1917',
-              background: apiKey ? 'rgba(15,123,91,0.06)' : 'rgba(55,53,47,0.04)',
-              border: apiKey ? '1px solid rgba(15,123,91,0.3)' : '1px solid rgba(55,53,47,0.12)',
-              borderRadius: 5,
-              outline: 'none',
-              transition: 'border-color 0.15s, background 0.15s',
-            }}
-          />
-          {apiKey && (
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0F7B5B', flexShrink: 0 }} />
-          )}
-        </div>
-        {csv && (
-          <button className="run-btn" onClick={onRunAnalysis} disabled={isAnalyzing}>
-            {isAnalyzing
-              ? <><div className="spinner" style={{ borderTopColor: '#fff' }} /> Analyzing...</>
-              : <>Run Analysis</>
-            }
-          </button>
+          <span style={{
+            fontSize: 11.5,
+            fontFamily: "'Manrope', sans-serif",
+            fontWeight: 600,
+            color: apiKey ? '#0F7B5B' : '#6F6E69',
+            letterSpacing: '-0.01em',
+          }}>
+            {apiKey ? 'API Key' : 'Add API Key'}
+          </span>
+          <span style={{
+            width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+            background: apiKey ? '#0F7B5B' : '#D4A017',
+          }} />
+        </button>
+
+        {showPopover && (
+          <div style={{
+            position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+            width: 300,
+            background: '#FFFFFF',
+            border: '1px solid rgba(55,53,47,0.14)',
+            borderRadius: 10,
+            boxShadow: '0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
+            padding: '14px 16px',
+            zIndex: 100,
+          }}>
+            {/* Header */}
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#1A1917', fontFamily: "'Manrope', sans-serif", marginBottom: 3 }}>
+                Anthropic API Key
+              </div>
+              <div style={{ fontSize: 11, color: '#AEAAA2', fontFamily: "'Manrope', sans-serif" }}>
+                Stored locally in your browser · never sent to our servers
+              </div>
+            </div>
+
+            {/* Input row */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: '#FAFAF8',
+              border: apiKey
+                ? (apiKey.startsWith('sk-ant-') ? '1px solid rgba(15,123,91,0.35)' : '1px solid rgba(201,32,28,0.25)')
+                : '1px solid rgba(55,53,47,0.14)',
+              borderRadius: 7,
+              padding: '7px 10px',
+              marginBottom: 8,
+            }}>
+              <input
+                type={showKey ? 'text' : 'password'}
+                value={apiKey}
+                onChange={(e) => onApiKeyChange(e.target.value)}
+                placeholder="sk-ant-api03-..."
+                autoComplete="off"
+                spellCheck={false}
+                style={{
+                  flex: 1,
+                  background: 'none', border: 'none', outline: 'none',
+                  fontSize: 12,
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  color: '#1A1917',
+                  minWidth: 0,
+                }}
+              />
+              {/* Show/hide toggle */}
+              <button
+                type="button"
+                onClick={() => setShowKey(k => !k)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#AEAAA2', flexShrink: 0 }}
+              >
+                {showKey ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 12s3.6-7 9-7 9 7 9 7-3.6 7-9 7-9-7-9-7z" stroke="currentColor" strokeWidth="1.8"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/>
+                    <path d="M3 3l18 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 12s3.6-7 9-7 9 7 9 7-3.6 7-9 7-9-7-9-7z" stroke="currentColor" strokeWidth="1.8"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/>
+                  </svg>
+                )}
+              </button>
+              {/* Clear button */}
+              {apiKey && (
+                <button
+                  type="button"
+                  onClick={() => onApiKeyChange('')}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#AEAAA2', flexShrink: 0 }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              )}
+              {/* Validation indicator */}
+              {apiKey && (
+                <span style={{
+                  width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+                  background: apiKey.startsWith('sk-ant-') ? '#0F7B5B' : '#C9201C',
+                }} />
+              )}
+            </div>
+
+            {/* Footer row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <a
+                href="https://console.anthropic.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  fontSize: 11, color: '#2264D1',
+                  fontFamily: "'Manrope', sans-serif",
+                  textDecoration: 'none',
+                  fontWeight: 500,
+                }}
+              >
+                Get your API key →
+              </a>
+              <button
+                type="button"
+                onClick={() => setShowPopover(false)}
+                style={{
+                  fontSize: 11, color: '#6F6E69',
+                  fontFamily: "'Manrope', sans-serif",
+                  background: 'rgba(55,53,47,0.06)',
+                  border: '1px solid rgba(55,53,47,0.12)',
+                  borderRadius: 5,
+                  padding: '4px 10px',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                Done
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </header>

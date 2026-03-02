@@ -251,4 +251,43 @@ export const CSS = `
     color: var(--text-secondary);
     margin: 10px 0;
   }
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 12px;
+  }
+  .prose table th {
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 7px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-bright);
+    white-space: nowrap;
+  }
+  .prose table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+  }
+  .prose table tr:last-child td { border-bottom: none; }
+  .prose table tr:hover td { background: var(--surface); color: var(--text); }
+
+  .chat-prose p { font-family: 'IBM Plex Mono', monospace; font-size: 12px; line-height: 1.8; color: var(--text-secondary); margin: 4px 0; }
+  .chat-prose h1, .chat-prose h2, .chat-prose h3 { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 700; margin: 8px 0 4px; }
+  .chat-prose ul { margin: 4px 0 4px 16px; }
+  .chat-prose li { font-family: 'IBM Plex Mono', monospace; font-size: 12px; line-height: 1.7; margin: 2px 0; }
+  .chat-prose code { font-size: 11px; }
+  .chat-prose pre { font-size: 11px; padding: 8px 10px; margin: 6px 0; }
+  .chat-prose strong { color: var(--text); }
+  .chat-prose table { margin: 8px 0; }
+  .chat-prose table th { font-size: 10px; padding: 5px 10px; }
+  .chat-prose table td { font-size: 11px; padding: 5px 10px; }
 `
