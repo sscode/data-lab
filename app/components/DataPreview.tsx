@@ -26,48 +26,6 @@ export function DataPreview({ csv }: DataPreviewProps) {
 
   return (
     <>
-      {/* Stats row */}
-      <div style={{ display: 'flex', gap: 6, padding: '0 12px 12px', flexShrink: 0 }}>
-        {[
-          { label: 'ROWS', value: csv.rowCount.toLocaleString() },
-          { label: 'COLS', value: String(csv.headers.length) },
-          { label: 'SIZE', value: csv.fileSize },
-        ].map(({ label, value }) => (
-          <div
-            key={label}
-            className="stat-chip"
-            style={{ flex: 1, minWidth: 0, transition: 'background 0.15s' }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = '#F0EFEC')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = '')}
-          >
-            <span style={{
-              fontSize: 9,
-              color: '#AEAAA2',
-              fontFamily: "'IBM Plex Mono', monospace",
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              fontWeight: 500,
-            }}>
-              {label}
-            </span>
-            <span style={{
-              fontSize: 13,
-              color: '#2264D1',
-              fontFamily: "'IBM Plex Mono', monospace",
-              fontWeight: 500,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}>
-              {value}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Divider */}
-      <div style={{ height: 1, background: 'rgba(55,53,47,0.10)', flexShrink: 0 }} />
-
       {/* Table preview */}
       <div style={{ flex: 1, overflow: 'auto' }}>
         <div style={{
@@ -79,7 +37,7 @@ export function DataPreview({ csv }: DataPreviewProps) {
           textTransform: 'uppercase',
           flexShrink: 0,
         }}>
-          Preview — {Math.min(5, csv.rows.length)} of {csv.rowCount.toLocaleString()} rows
+          Preview — {Math.min(15, csv.rows.length)} of {csv.rowCount.toLocaleString()} rows
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table className="dt">

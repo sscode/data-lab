@@ -24,6 +24,13 @@ export default function DataLab() {
   const chat     = useChat(csv, apiKey)
   const analysis = useAnalysis(csv, setPanel, apiKey)
 
+  const handleClearAll = useCallback(() => {
+    setCsv(null)
+    chat.reset()
+    analysis.reset()
+    setPanel('chat')
+  }, [chat, analysis])
+
   const { isDragging, fileRef, handleFile, onDragOver, onDragLeave, onDrop } = useCSV({
     onFileLoaded: useCallback((data: CSVData) => {
       setCsv(data)
@@ -48,6 +55,8 @@ export default function DataLab() {
           csv={csv}
           apiKey={apiKey}
           onApiKeyChange={(key) => { setApiKey(key); localStorage.setItem('anthropic-api-key', key) }}
+          hasCsv={!!csv}
+          onClearAll={handleClearAll}
         />
 
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>

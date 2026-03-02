@@ -9,7 +9,7 @@ export function parseCSV(text: string, filename: string, size: number): CSVData 
     .split(',')
     .map((h) => h.trim().replace(/^"|"$/g, ''))
   const rows = lines
-    .slice(1, 6)
+    .slice(1, 16)
     .map((line) => line.split(',').map((c) => c.trim().replace(/^"|"$/g, '')))
   const allRows = lines
     .slice(1)

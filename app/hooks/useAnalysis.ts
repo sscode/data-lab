@@ -34,5 +34,9 @@ export function useAnalysis(csv: CSVData | null, setPanel: Dispatch<SetStateActi
     }
   }, [csv, isAnalyzing, setPanel])
 
-  return { isAnalyzing, report, runAnalysis }
+  const reset = useCallback(() => {
+    setReport(null)
+  }, [])
+
+  return { isAnalyzing, report, runAnalysis, reset }
 }

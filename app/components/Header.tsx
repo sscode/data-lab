@@ -7,9 +7,11 @@ interface HeaderProps {
   csv: CSVData | null
   apiKey: string
   onApiKeyChange: (key: string) => void
+  hasCsv: boolean
+  onClearAll: () => void
 }
 
-export function Header({ csv, apiKey, onApiKeyChange }: HeaderProps) {
+export function Header({ csv, apiKey, onApiKeyChange, hasCsv, onClearAll }: HeaderProps) {
   const [showPopover, setShowPopover] = useState(false)
   const [showKey, setShowKey] = useState(false)
   const keyContainerRef = useRef<HTMLDivElement>(null)
@@ -74,8 +76,46 @@ export function Header({ csv, apiKey, onApiKeyChange }: HeaderProps) {
         )}
       </div>
 
-      {/* API Key */}
-      <div ref={keyContainerRef} style={{ position: 'relative' }}>
+      {/* Right toolbar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {hasCsv && (
+          <button
+            type="button"
+            onClick={onClearAll}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '4px 10px',
+              background: 'transparent',
+              border: '1px solid rgba(55,53,47,0.18)',
+              borderRadius: 6,
+              cursor: 'pointer',
+              fontFamily: "'IBM Plex Mono', monospace",
+              fontSize: 11,
+              fontWeight: 500,
+              color: '#6F6E69',
+              letterSpacing: '0.03em',
+              transition: 'all 0.14s',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(201,32,28,0.35)'
+              ;(e.currentTarget as HTMLButtonElement).style.color = '#C9201C'
+              ;(e.currentTarget as HTMLButtonElement).style.background = 'rgba(201,32,28,0.04)'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(55,53,47,0.18)'
+              ;(e.currentTarget as HTMLButtonElement).style.color = '#6F6E69'
+              ;(e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+            }}
+          >
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
+            </svg>
+            Clear All
+          </button>
+        )}
+
+        {/* API Key */}
+        <div ref={keyContainerRef} style={{ position: 'relative' }}>
         <button
           onClick={() => setShowPopover(p => !p)}
           style={{
@@ -230,6 +270,7 @@ export function Header({ csv, apiKey, onApiKeyChange }: HeaderProps) {
             </div>
           </div>
         )}
+        </div>
       </div>
     </header>
   )

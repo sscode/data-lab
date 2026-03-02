@@ -65,5 +65,10 @@ export function useChat(csv: CSVData | null, apiKey: string) {
     }
   }, [input, csv, isChatBusy, messages])
 
-  return { messages, setMessages, input, setInput, isChatBusy, bottomRef, inputRef, handleSubmit }
+  const reset = useCallback(() => {
+    setMessages([])
+    setInput('')
+  }, [])
+
+  return { messages, setMessages, input, setInput, isChatBusy, bottomRef, inputRef, handleSubmit, reset }
 }
