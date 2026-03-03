@@ -40,8 +40,8 @@ An AI-powered CSV analysis tool with a retro amber CRT terminal aesthetic.
 ## Installation
 
 ```bash
-git clone https://github.com/your-username/skill-frontender.git
-cd skill-frontender
+git clone https://github.com/sscode/data-lab.git
+cd data-lab
 npm install
 cp .env.example .env.local
 ```
