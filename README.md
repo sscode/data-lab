@@ -1,6 +1,6 @@
-# CSV DataLab
+#CSV Data-Lab
 
-An AI-powered CSV analysis tool with a retro amber CRT terminal aesthetic.
+An Opensource project for users to quickly analyze data thanks to data scientist skills.
 
 ---
 
