@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect } from 'react'
 import { renderMarkdown } from '../lib/renderMarkdown'
-import type { CSVData } from '../lib/types'
+import type { CSVData, MessageCost } from '../lib/types'
+import { formatCost } from '../lib/costs'
 
 interface ReportPanelProps {
   isAnalyzing: boolean
   report: string | null
   csv: CSVData | null
   onRunAnalysis: () => void
+  analysisCost: MessageCost | null
 }
 
 function AnimatedEllipsis() {
@@ -21,7 +23,7 @@ function AnimatedEllipsis() {
   return <span style={{ letterSpacing: 2 }}>{dots}</span>
 }
 
-export function ReportPanel({ isAnalyzing, report, csv, onRunAnalysis }: ReportPanelProps) {
+export function ReportPanel({ isAnalyzing, report, csv, onRunAnalysis, analysisCost }: ReportPanelProps) {
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
       {isAnalyzing ? (
@@ -39,10 +41,17 @@ export function ReportPanel({ isAnalyzing, report, csv, onRunAnalysis }: ReportP
           </div>
         </div>
       ) : report ? (
-        <div
-          className="prose fade-in"
-          dangerouslySetInnerHTML={{ __html: renderMarkdown(report) }}
-        />
+        <div className="fade-in">
+          <div
+            className="prose"
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(report) }}
+          />
+          {analysisCost && (
+            <div style={{ fontSize: '10px', color: 'rgba(255,184,0,0.5)', fontFamily: 'IBM Plex Mono, monospace', marginTop: '12px', borderTop: '1px solid rgba(255,184,0,0.15)', paddingTop: '8px' }}>
+              Analysis cost: {formatCost(analysisCost.costUsd)} · {analysisCost.promptTokens.toLocaleString()} in / {analysisCost.completionTokens.toLocaleString()} out
+            </div>
+          )}
+        </div>
       ) : (
         <div style={{
           paddingTop: 80, textAlign: 'center',

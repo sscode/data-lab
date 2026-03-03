@@ -9,20 +9,23 @@ import { Header } from './components/Header'
 import { LeftPanel } from './components/LeftPanel'
 import { RightPanel } from './components/RightPanel'
 import { StatusBar } from './components/StatusBar'
-import type { CSVData, Panel } from './lib/types'
+import type { CSVData, Panel, ModelId } from './lib/types'
 
 export default function DataLab() {
-  const [csv, setCsv]     = useState<CSVData | null>(null)
-  const [panel, setPanel] = useState<Panel>('chat')
-  const [apiKey, setApiKey] = useState('')
+  const [csv, setCsv]           = useState<CSVData | null>(null)
+  const [panel, setPanel]       = useState<Panel>('chat')
+  const [apiKey, setApiKey]     = useState('')
+  const [selectedModel, setSelectedModel] = useState<ModelId>('claude-sonnet-4-6')
 
   useEffect(() => {
     const saved = localStorage.getItem('anthropic-api-key')
     if (saved) setApiKey(saved)
   }, [])
 
-  const analysis = useAnalysis(csv, setPanel, apiKey)
-  const chat     = useChat(csv, apiKey, analysis.report)
+  const analysis = useAnalysis(csv, setPanel, apiKey, selectedModel)
+  const chat     = useChat(csv, apiKey, analysis.report, selectedModel)
+  const { sessionCostUsd } = chat
+  const { analysisCost }   = analysis
 
   const handleClearAll = useCallback(() => {
     setCsv(null)
@@ -57,6 +60,8 @@ export default function DataLab() {
           onApiKeyChange={(key) => { setApiKey(key); localStorage.setItem('anthropic-api-key', key) }}
           hasCsv={!!csv}
           onClearAll={handleClearAll}
+          selectedModel={selectedModel}
+          onModelChange={setSelectedModel}
         />
 
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
@@ -83,6 +88,9 @@ export default function DataLab() {
             inputRef={chat.inputRef}
             handleSubmit={chat.handleSubmit}
             onRunAnalysis={analysis.runAnalysis}
+            sessionCostUsd={sessionCostUsd}
+            analysisCost={analysisCost}
+            selectedModel={selectedModel}
           />
         </div>
 

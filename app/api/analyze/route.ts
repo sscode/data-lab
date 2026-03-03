@@ -14,6 +14,8 @@
  */
 import Anthropic from '@anthropic-ai/sdk'
 import { DEEP_ANALYSIS_PROMPT } from '@/lib/skill-prompt'
+import { calcCost } from '../../lib/costs'
+import { MessageCost, ModelId } from '../../lib/types'
 
 export const maxDuration = 120
 
@@ -23,6 +25,7 @@ interface AnalyzeRequest {
   headers: string[]
   preview: string[][]
   allRows: string[][]
+  model?: ModelId
 }
 
 /**
@@ -81,7 +84,12 @@ Generate the full EDA report now. Be thorough, specific, and actionable.`
  * Direct Anthropic API fallback — no CLI required.
  * Used when USE_AGENT_SDK is not set or Agent SDK is unavailable.
  */
-async function runDirectAnalysis(data: AnalyzeRequest, apiKey: string): Promise<string> {
+interface DirectAnalysisResult {
+  report: string
+  usage: { inputTokens: number; outputTokens: number } | null
+}
+
+async function runDirectAnalysis(data: AnalyzeRequest, apiKey: string, model: ModelId): Promise<DirectAnalysisResult> {
   const client = new Anthropic({ apiKey })
 
   const directRowsToShow = data.allRows.slice(0, 200)
@@ -95,7 +103,7 @@ async function runDirectAnalysis(data: AnalyzeRequest, apiKey: string): Promise<
     : ''
 
   const message = await client.messages.create({
-    model: 'claude-opus-4-6',
+    model,
     max_tokens: 4096,
     messages: [
       {
@@ -117,7 +125,12 @@ Generate the full EDA report now.`,
   })
 
   const block = message.content[0]
-  return block.type === 'text' ? block.text : 'No report generated.'
+  const report = block.type === 'text' ? block.text : 'No report generated.'
+  const usage = message.usage
+    ? { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens }
+    : null
+
+  return { report, usage }
 }
 
 export async function POST(req: Request) {
@@ -126,16 +139,28 @@ export async function POST(req: Request) {
     return Response.json({ error: 'API key required' }, { status: 401 })
   }
 
-  const data: AnalyzeRequest = await req.json()
+  const body: AnalyzeRequest = await req.json()
+  const model: ModelId = (body.model === 'claude-sonnet-4-6' || body.model === 'claude-opus-4-6')
+    ? body.model
+    : 'claude-opus-4-6'
 
   const useAgentSdk = process.env.USE_AGENT_SDK === 'true'
 
   try {
-    const report = useAgentSdk
-      ? await runAgentAnalysis(data, apiKey)
-      : await runDirectAnalysis(data, apiKey)
+    if (useAgentSdk) {
+      const report = await runAgentAnalysis(body, apiKey)
+      return Response.json({ report, usage: null, model })
+    }
 
-    return Response.json({ report })
+    const result = await runDirectAnalysis(body, apiKey, model)
+    const costObj: MessageCost | null = result.usage ? {
+      promptTokens: result.usage.inputTokens,
+      completionTokens: result.usage.outputTokens,
+      totalTokens: result.usage.inputTokens + result.usage.outputTokens,
+      costUsd: calcCost(model, result.usage.inputTokens, result.usage.outputTokens),
+    } : null
+
+    return Response.json({ report: result.report, usage: costObj, model })
   } catch (err) {
     console.error('[analyze]', err)
 
@@ -143,8 +168,14 @@ export async function POST(req: Request) {
     if (useAgentSdk) {
       console.warn('[analyze] Agent SDK failed, falling back to direct API')
       try {
-        const report = await runDirectAnalysis(data, apiKey)
-        return Response.json({ report })
+        const result = await runDirectAnalysis(body, apiKey, model)
+        const costObj: MessageCost | null = result.usage ? {
+          promptTokens: result.usage.inputTokens,
+          completionTokens: result.usage.outputTokens,
+          totalTokens: result.usage.inputTokens + result.usage.outputTokens,
+          costUsd: calcCost(model, result.usage.inputTokens, result.usage.outputTokens),
+        } : null
+        return Response.json({ report: result.report, usage: costObj, model })
       } catch (fallbackErr) {
         console.error('[analyze] Fallback also failed', fallbackErr)
       }

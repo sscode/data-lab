@@ -1,8 +1,9 @@
 'use client'
 
 import React from 'react'
-import type { CSVData, Message } from '../lib/types'
+import type { CSVData, Message, ModelId } from '../lib/types'
 import { renderMarkdown } from '../lib/renderMarkdown'
+import { formatCost } from '../lib/costs'
 
 interface ChatPanelProps {
   csv: CSVData | null
@@ -13,11 +14,14 @@ interface ChatPanelProps {
   bottomRef: React.RefObject<HTMLDivElement | null>
   inputRef: React.RefObject<HTMLInputElement | null>
   handleSubmit: (e: React.FormEvent) => void
+  sessionCostUsd: number
+  selectedModel: ModelId
 }
 
 export function ChatPanel({
   csv, messages, input, setInput, isChatBusy,
   bottomRef, inputRef, handleSubmit,
+  sessionCostUsd, selectedModel,
 }: ChatPanelProps) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -117,6 +121,23 @@ export function ChatPanel({
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }}
                 />
               )}
+              {msg.role === 'assistant' && !msg.streaming && msg.cost && (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  marginTop: 7,
+                  padding: '3px 8px',
+                  background: '#F0EFEC',
+                  border: '1px solid rgba(55,53,47,0.12)',
+                  borderRadius: 4,
+                  fontFamily: 'IBM Plex Mono, monospace',
+                  fontSize: 10.5,
+                  color: '#6F6E69',
+                }}>
+                  <span style={{ color: '#1A1917', fontWeight: 600 }}>{formatCost(msg.cost.costUsd)}</span>
+                  <span style={{ opacity: 0.4 }}>·</span>
+                  <span>{msg.cost.totalTokens.toLocaleString()} tok</span>
+                </div>
+              )}
             </div>
           ))
         )}
@@ -130,6 +151,19 @@ export function ChatPanel({
         flexShrink: 0,
         background: '#FAFAF8',
       }}>
+        {sessionCostUsd > 0 && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            marginBottom: 8,
+            fontFamily: 'IBM Plex Mono, monospace',
+            fontSize: 10.5,
+            color: '#AEAAA2',
+          }}>
+            <span>session total</span>
+            <span style={{ opacity: 0.4 }}>·</span>
+            <span style={{ color: '#1A1917', fontWeight: 600 }}>{formatCost(sessionCostUsd)}</span>
+          </div>
+        )}
         <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <div className="chat-input-wrap" style={{ flex: 1, minHeight: 38 }}>
             <input

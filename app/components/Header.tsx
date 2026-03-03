@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import type { CSVData } from '../lib/types'
+import type { CSVData, ModelId } from '../lib/types'
+import { MODELS } from '../lib/costs'
 
 interface HeaderProps {
   csv: CSVData | null
@@ -9,9 +10,11 @@ interface HeaderProps {
   onApiKeyChange: (key: string) => void
   hasCsv: boolean
   onClearAll: () => void
+  selectedModel: ModelId
+  onModelChange: (model: ModelId) => void
 }
 
-export function Header({ csv, apiKey, onApiKeyChange, hasCsv, onClearAll }: HeaderProps) {
+export function Header({ csv, apiKey, onApiKeyChange, hasCsv, onClearAll, selectedModel, onModelChange }: HeaderProps) {
   const [showPopover, setShowPopover] = useState(false)
   const [showKey, setShowKey] = useState(false)
   const keyContainerRef = useRef<HTMLDivElement>(null)
@@ -113,6 +116,26 @@ export function Header({ csv, apiKey, onApiKeyChange, hasCsv, onClearAll }: Head
             Clear All
           </button>
         )}
+
+        {/* Model selector */}
+        <select
+          value={selectedModel}
+          onChange={e => onModelChange(e.target.value as ModelId)}
+          style={{
+            background: 'transparent',
+            border: '1px solid rgba(255,184,0,0.4)',
+            color: '#ffb800',
+            fontFamily: 'IBM Plex Mono, monospace',
+            fontSize: '11px',
+            padding: '3px 6px',
+            cursor: 'pointer',
+            outline: 'none',
+          }}
+        >
+          {(Object.entries(MODELS) as [ModelId, { label: string }][]).map(([id, { label }]) => (
+            <option key={id} value={id} style={{ background: '#080600' }}>{label}</option>
+          ))}
+        </select>
 
         {/* API Key */}
         <div ref={keyContainerRef} style={{ position: 'relative' }}>

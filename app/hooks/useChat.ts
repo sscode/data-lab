@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import type { CSVData, Message } from '../lib/types'
+import type { CSVData, Message, MessageCost, ModelId } from '../lib/types'
+import { stripSentinel, calcCost } from '../lib/costs'
 
-export function useChat(csv: CSVData | null, apiKey: string, report: string | null = null) {
+export function useChat(csv: CSVData | null, apiKey: string, report: string | null = null, model: ModelId = 'claude-sonnet-4-6') {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isChatBusy, setChatBusy] = useState(false)
+  const [sessionCostUsd, setSessionCostUsd] = useState(0)
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef  = useRef<HTMLInputElement>(null)
@@ -36,6 +38,7 @@ export function useChat(csv: CSVData | null, apiKey: string, report: string | nu
           messages: allMsgs.map((m) => ({ role: m.role, content: m.content })),
           csvContext: { headers: csv.headers, preview: csv.rows, allRows: csv.allRows, rowCount: csv.rowCount, filename: csv.filename },
           report,
+          model,
         }),
       })
 
@@ -51,8 +54,23 @@ export function useChat(csv: CSVData | null, apiKey: string, report: string | nu
           p.map((m) => (m.id === asstId ? { ...m, content } : m))
         )
       }
+      const result = stripSentinel(content)
+      let cost: MessageCost | undefined
+      if (
+        result.usage !== null &&
+        typeof result.usage.promptTokens === 'number' &&
+        typeof result.usage.completionTokens === 'number'
+      ) {
+        cost = {
+          promptTokens: result.usage.promptTokens,
+          completionTokens: result.usage.completionTokens,
+          totalTokens: result.usage.promptTokens + result.usage.completionTokens,
+          costUsd: calcCost(model, result.usage.promptTokens, result.usage.completionTokens),
+        }
+        setSessionCostUsd((prev) => prev + cost!.costUsd)
+      }
       setMessages((p) =>
-        p.map((m) => (m.id === asstId ? { ...m, streaming: false } : m))
+        p.map((m) => (m.id === asstId ? { ...m, content: result.content, streaming: false, cost } : m))
       )
     } catch {
       setMessages((p) =>
@@ -71,5 +89,5 @@ export function useChat(csv: CSVData | null, apiKey: string, report: string | nu
     setInput('')
   }, [])
 
-  return { messages, setMessages, input, setInput, isChatBusy, bottomRef, inputRef, handleSubmit, reset }
+  return { messages, setMessages, input, setInput, isChatBusy, sessionCostUsd, bottomRef, inputRef, handleSubmit, reset }
 }

@@ -8,6 +8,8 @@
 import { streamText } from 'ai'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { SENIOR_DS_SYSTEM_PROMPT } from '@/lib/skill-prompt'
+import { buildSentinel } from '../../lib/costs'
+import type { ModelId } from '../../lib/types'
 
 export const maxDuration = 60
 
@@ -30,8 +32,10 @@ export async function POST(req: Request) {
     return Response.json({ error: 'API key required' }, { status: 401 })
   }
 
-  const { messages, csvContext, report }: { messages: Message[]; csvContext: CSVContext; report?: string | null } =
+  const { messages, csvContext, report, model: modelId }: { messages: Message[]; csvContext: CSVContext; report?: string | null; model?: ModelId } =
     await req.json()
+
+  const model: ModelId = modelId ?? 'claude-sonnet-4-6'
 
   const rowsToShow = csvContext.allRows.slice(0, 200)
   const formattedRows = rowsToShow
@@ -63,11 +67,25 @@ ${formattedRows}
     : ''
 
   const result = streamText({
-    model: provider('claude-opus-4-6'),
+    model: provider(model),
     system: `${SENIOR_DS_SYSTEM_PROMPT}\n\n${datasetContext}${reportContext}`,
     messages,
     maxOutputTokens: 1024,
   })
 
-  return result.toTextStreamResponse()
+  const encoder = new TextEncoder()
+  const stream = new ReadableStream({
+    async start(controller) {
+      for await (const chunk of result.textStream) {
+        controller.enqueue(encoder.encode(chunk))
+      }
+      const usage = await result.usage
+      // AI SDK v6 uses inputTokens/outputTokens (not promptTokens/completionTokens)
+      const promptTokens = usage.inputTokens ?? 0
+      const completionTokens = usage.outputTokens ?? 0
+      controller.enqueue(encoder.encode(buildSentinel(promptTokens, completionTokens)))
+      controller.close()
+    }
+  })
+  return new Response(stream, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } })
 }

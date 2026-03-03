@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import type { CSVData, Message, Panel } from '../lib/types'
+import type { CSVData, Message, MessageCost, ModelId, Panel } from '../lib/types'
 import { ChatPanel } from './ChatPanel'
 import { ReportPanel } from './ReportPanel'
 
@@ -19,6 +19,9 @@ interface RightPanelProps {
   inputRef: React.RefObject<HTMLInputElement | null>
   handleSubmit: (e: React.FormEvent) => void
   onRunAnalysis: () => void
+  sessionCostUsd: number
+  analysisCost: MessageCost | null
+  selectedModel: ModelId
 }
 
 export function RightPanel({
@@ -27,6 +30,7 @@ export function RightPanel({
   isAnalyzing, report,
   bottomRef, inputRef, handleSubmit,
   onRunAnalysis,
+  sessionCostUsd, analysisCost, selectedModel,
 }: RightPanelProps) {
   return (
     <div style={{
@@ -85,11 +89,13 @@ export function RightPanel({
           bottomRef={bottomRef}
           inputRef={inputRef}
           handleSubmit={handleSubmit}
+          sessionCostUsd={sessionCostUsd}
+          selectedModel={selectedModel}
         />
       )}
 
       {panel === 'report' && (
-        <ReportPanel isAnalyzing={isAnalyzing} report={report} csv={csv} onRunAnalysis={onRunAnalysis} />
+        <ReportPanel isAnalyzing={isAnalyzing} report={report} csv={csv} onRunAnalysis={onRunAnalysis} analysisCost={analysisCost} />
       )}
     </div>
   )
