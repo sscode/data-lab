@@ -1,7 +1,14 @@
 {
   "name": "csv-datalab",
   "version": "0.1.0",
-  "private": true,
+  "description": "AI-powered CSV analysis tool with a retro terminal interface",
+  "author": "Stu",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stusim/csv-datalab"
+  },
+  "homepage": "https://github.com/stusim/csv-datalab#readme",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
