@@ -1,6 +1,6 @@
 export const MODELS = {
-  'claude-sonnet-4-6': { label: 'Sonnet 4.6', input: 3.00,  output: 15.00 },
-  'claude-opus-4-6':   { label: 'Opus 4.6',   input: 15.00, output: 75.00 },
+  'claude-sonnet-4-6': { label: 'Claude Sonnet 4.6', shortLabel: 'Sonnet 4.6', description: 'Fast & cost-effective', input: 3.00,  output: 15.00 },
+  'claude-opus-4-6':   { label: 'Claude Opus 4.6',   shortLabel: 'Opus 4.6',   description: 'Most capable',         input: 15.00, output: 75.00 },
 } as const
 
 export type ModelId = keyof typeof MODELS

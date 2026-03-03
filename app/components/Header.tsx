@@ -16,13 +16,18 @@ interface HeaderProps {
 
 export function Header({ csv, apiKey, onApiKeyChange, hasCsv, onClearAll, selectedModel, onModelChange }: HeaderProps) {
   const [showPopover, setShowPopover] = useState(false)
+  const [showModelPopover, setShowModelPopover] = useState(false)
   const [showKey, setShowKey] = useState(false)
   const keyContainerRef = useRef<HTMLDivElement>(null)
+  const modelContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (keyContainerRef.current && !keyContainerRef.current.contains(e.target as Node)) {
         setShowPopover(false)
+      }
+      if (modelContainerRef.current && !modelContainerRef.current.contains(e.target as Node)) {
+        setShowModelPopover(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -118,24 +123,144 @@ export function Header({ csv, apiKey, onApiKeyChange, hasCsv, onClearAll, select
         )}
 
         {/* Model selector */}
-        <select
-          value={selectedModel}
-          onChange={e => onModelChange(e.target.value as ModelId)}
-          style={{
-            background: 'transparent',
-            border: '1px solid rgba(255,184,0,0.4)',
-            color: '#ffb800',
-            fontFamily: 'IBM Plex Mono, monospace',
-            fontSize: '11px',
-            padding: '3px 6px',
-            cursor: 'pointer',
-            outline: 'none',
-          }}
-        >
-          {(Object.entries(MODELS) as [ModelId, { label: string }][]).map(([id, { label }]) => (
-            <option key={id} value={id} style={{ background: '#080600' }}>{label}</option>
-          ))}
-        </select>
+        <div ref={modelContainerRef} style={{ position: 'relative' }}>
+          <button
+            type="button"
+            onClick={() => setShowModelPopover(p => !p)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '5px 10px',
+              background: showModelPopover ? 'rgba(55,53,47,0.06)' : 'rgba(55,53,47,0.04)',
+              border: '1px solid rgba(55,53,47,0.18)',
+              borderRadius: 6,
+              cursor: 'pointer',
+              transition: 'all 0.14s',
+            }}
+            onMouseEnter={e => {
+              if (!showModelPopover) {
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(55,53,47,0.07)'
+                ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(55,53,47,0.28)'
+              }
+            }}
+            onMouseLeave={e => {
+              if (!showModelPopover) {
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(55,53,47,0.04)'
+                ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(55,53,47,0.18)'
+              }
+            }}
+          >
+            <span style={{
+              fontSize: 11,
+              fontFamily: "'IBM Plex Mono', monospace",
+              fontWeight: 500,
+              color: '#6F6E69',
+              letterSpacing: '0.01em',
+            }}>
+              {MODELS[selectedModel].shortLabel}
+            </span>
+            {/* Chevron */}
+            <svg
+              width="9" height="9" viewBox="0 0 24 24" fill="none"
+              style={{ transform: showModelPopover ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.14s' }}
+            >
+              <path d="M6 9l6 6 6-6" stroke="#AEAAA2" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+
+          {showModelPopover && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+              width: 272,
+              background: '#FFFFFF',
+              border: '1px solid rgba(55,53,47,0.14)',
+              borderRadius: 10,
+              boxShadow: '0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
+              padding: '12px 12px 10px',
+              zIndex: 100,
+            }}>
+              <div style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: '#AEAAA2',
+                fontFamily: "'Manrope', sans-serif",
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                marginBottom: 8,
+                paddingLeft: 4,
+              }}>
+                Select Model
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {(Object.entries(MODELS) as [ModelId, typeof MODELS[keyof typeof MODELS]][]).map(([id, model]) => {
+                  const isSelected = id === selectedModel
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => { onModelChange(id); setShowModelPopover(false) }}
+                      style={{
+                        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+                        padding: '9px 10px 9px 12px',
+                        background: isSelected ? 'rgba(34,100,209,0.05)' : 'transparent',
+                        border: 'none',
+                        borderLeft: isSelected ? '2px solid #2264D1' : '2px solid transparent',
+                        borderRadius: isSelected ? '0 7px 7px 0' : 7,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        width: '100%',
+                        transition: 'all 0.12s',
+                      }}
+                      onMouseEnter={e => {
+                        if (!isSelected) {
+                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(55,53,47,0.04)'
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (!isSelected) {
+                          (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+                        }
+                      }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <span style={{
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          fontFamily: "'Manrope', sans-serif",
+                          color: isSelected ? '#2264D1' : '#1A1917',
+                          letterSpacing: '-0.01em',
+                        }}>
+                          {model.label}
+                        </span>
+                        <span style={{
+                          fontSize: 11,
+                          fontFamily: "'Manrope', sans-serif",
+                          color: '#6F6E69',
+                          fontWeight: 400,
+                        }}>
+                          {model.description}
+                        </span>
+                        <span style={{
+                          fontSize: 10.5,
+                          fontFamily: "'IBM Plex Mono', monospace",
+                          color: '#AEAAA2',
+                          marginTop: 2,
+                        }}>
+                          In: ${model.input}/1M · Out: ${model.output}/1M
+                        </span>
+                      </div>
+                      {isSelected && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 2 }}>
+                          <path d="M5 13l4 4L19 7" stroke="#2264D1" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* API Key */}
         <div ref={keyContainerRef} style={{ position: 'relative' }}>
