@@ -1,6 +1,6 @@
 #CSV Data-Lab
 
-An Opensource project for users to quickly analyze data thanks to data scientist skills.
+An Opensource project for users to quickly analyze data thanks to AI data scientist skills.
 
 ---
 
