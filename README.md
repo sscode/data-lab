@@ -1,69 +1,68 @@
-#CSV Data-Lab
+# DataLab
 
-An Opensource project for users to quickly analyze data thanks to AI data scientist skills.
+Drop in a CSV. Ask Claude questions. Get a report.
 
----
-
-## Features
-
-- Upload any CSV file and preview the full dataset in a structured table
-- Chat with Claude to ask questions about your data and get instant AI analysis
-- Deep analysis mode using the Anthropic SDK directly for extended reasoning tasks
-- Generated reports tab that compiles AI insights into a structured document
-- Model selector with support for multiple Claude models and per-message cost tracking
-- API key entered directly in the UI — no server-side key required
-- Amber CRT terminal aesthetic: scanlines, vignette overlay, IBM Plex Mono font
+DataLab is a browser-based data analysis tool built on Claude. There's no database, no accounts, and no data stored server-side. Your CSV stays in the browser. Your API key lives in localStorage and goes directly to Anthropic — nothing passes through any intermediate server.
 
 ---
 
-## Tech Stack
+## What it does
 
-| Layer | Technology |
+**Chat with your data** — ask questions in plain English. Claude reads your actual rows and responds in plain text, rendered in a monospace chat panel that feels more like a terminal than a chatbot.
+
+**Deep analysis** — run a structured breakdown of your dataset: distributions, outliers, patterns, correlations. The analysis runs against all rows, not just a preview.
+
+**Report view** — compiled insights render into a clean, readable document. Copy it, share it, iterate on it.
+
+**Model selector with live cost tracking** — switch between Claude Sonnet 4.6 (fast, cost-effective) and Opus 4.6 (most capable). Cost per message is calculated and shown inline, so you know exactly what you're spending.
+
+---
+
+## Interface
+
+Two panels. Left: CSV preview with full table. Right: chat + report tabs.
+
+The UI uses Manrope for chrome and IBM Plex Mono for data, chat, and code — a deliberate split between navigation context and data context. No CSS framework; everything is inline styles, keeping the design surface small and the component code self-contained.
+
+---
+
+## Tech stack
+
+| | |
 |---|---|
 | Framework | Next.js 15 (App Router) |
 | Language | TypeScript |
-| UI | React 19 |
-| AI streaming | AI SDK v6 (`@ai-sdk/anthropic`) |
-| AI models | Anthropic Claude (via `@anthropic-ai/sdk`) |
-| Agent support | Claude Agent SDK (`@anthropic-ai/claude-agent-sdk`, optional) |
-| Styling | Inline styles (no Tailwind, no CSS modules) |
+| UI | React 19, inline styles (no CSS framework) |
+| Fonts | Manrope (UI), IBM Plex Mono (data / chat / code) |
+| AI streaming | AI SDK v6 — `@ai-sdk/anthropic` |
+| AI models | Anthropic Claude — `@anthropic-ai/sdk` |
+| Agent support | Claude Agent SDK — `@anthropic-ai/claude-agent-sdk` (optional) |
 
 ---
 
-## Prerequisites
-
-- Node.js 18 or higher
-- An [Anthropic API key](https://console.anthropic.com/)
-
----
-
-## Installation
+## Getting started
 
 ```bash
 git clone https://github.com/sscode/data-lab.git
 cd data-lab
 npm install
 cp .env.example .env.local
-```
-
-Open `.env.local` and fill in your Anthropic API key (see [Environment Variables](#environment-variables) below).
-
-```bash
+# add your ANTHROPIC_API_KEY to .env.local
 npm run dev
 ```
 
-The app will be available at `http://localhost:3000`.
+Open `http://localhost:3000`. Add your API key using the header button, drop a CSV, and start asking.
 
 ---
 
-## Environment Variables
+## Environment variables
 
 | Variable | Required | Description |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Yes | Your Anthropic API key, used by server-side analysis routes |
-| `USE_AGENT_SDK` | No | Set to `true` to enable the Claude Agent SDK for deep analysis (requires `claude` CLI installed globally) |
+| `ANTHROPIC_API_KEY` | Yes | Used server-side by the `/api/analyze` route |
+| `USE_AGENT_SDK` | No | Set `true` to route deep analysis through the Claude Agent SDK |
 
-To install the Claude CLI (needed only when `USE_AGENT_SDK=true`):
+To enable Agent SDK mode, install the Claude CLI globally first:
 
 ```bash
 npm install -g @anthropic-ai/claude-code
@@ -71,25 +70,18 @@ npm install -g @anthropic-ai/claude-code
 
 ---
 
-## Usage
+## How the routing works
 
-1. Open the app and enter your Anthropic API key in the key field at the top of the interface
-2. Upload a CSV file using the left panel; the data preview table will populate automatically
-3. Select a Claude model from the model selector (cost-per-message is shown for each option)
-4. Type questions about your data in the chat tab on the right panel
-5. Run a deep analysis via the analyze button to get a structured breakdown of the dataset
-6. Switch to the report tab to view and copy the compiled AI-generated report
+Two API routes:
+
+- **`/api/chat`** — streams responses via AI SDK v6 `streamText`. The client reads the raw text stream with a `TextDecoder`. Token usage is appended as a sentinel at the end of the stream and stripped client-side for cost calculation.
+- **`/api/analyze`** — runs full-dataset analysis. With `USE_AGENT_SDK=true`, delegates to the Claude Agent SDK with automatic fallback to the Anthropic SDK if unavailable.
 
 ---
 
-## Architecture
+## Contributing
 
-The app uses the Next.js App Router with two primary API routes:
-
-- **`/api/chat`** — handles streaming chat responses using AI SDK v6 `streamText` and `toTextStreamResponse()`. The frontend consumes the raw text stream with a `TextDecoder`.
-- **`/api/analyze`** — handles deep analysis requests using the Anthropic SDK directly. When `USE_AGENT_SDK=true`, it uses the Claude Agent SDK with automatic fallback to the direct Anthropic API if the SDK is unavailable.
-
-The two-panel UI is entirely client-side React with inline styles. The left panel manages CSV parsing and data preview; the right panel manages chat state, model selection, and report rendering.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, PR process, and code style notes.
 
 ---
 
